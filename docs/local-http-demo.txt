@@ -1,0 +1,4 @@
+{"status":"ok"}
+{"hits":[{"source":"policy.md","section":2,"text":"## VPN troubleshooting\nVerify network connectivity. Restart the VPN client. If the problem remains, create an IT support ticket after user confirmation. Never request a password or MFA code."}],"status":"grounded"}
+{"ticket_id":"T-4502708d96ec4c72","status":"open","approval_id":null,"replayed":false}
+{"ticket_id":"T-4502708d96ec4c72","status":"open","approval_id":null,"replayed":true}
