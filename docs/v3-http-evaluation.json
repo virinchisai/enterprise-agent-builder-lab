@@ -1,0 +1,54 @@
+{
+  "passed": 12,
+  "total": 12,
+  "cases": [
+    {
+      "case": "UI serves",
+      "passed": true
+    },
+    {
+      "case": "health",
+      "passed": true
+    },
+    {
+      "case": "unauthenticated blocked",
+      "passed": true
+    },
+    {
+      "case": "local grounded chat",
+      "passed": true
+    },
+    {
+      "case": "no evidence",
+      "passed": true
+    },
+    {
+      "case": "approval pending",
+      "passed": true
+    },
+    {
+      "case": "idempotent replay",
+      "passed": true
+    },
+    {
+      "case": "cross-user isolation",
+      "passed": true
+    },
+    {
+      "case": "ordinary user cannot approve",
+      "passed": true
+    },
+    {
+      "case": "reviewer decision",
+      "passed": true
+    },
+    {
+      "case": "approval replay denied",
+      "passed": true
+    },
+    {
+      "case": "ticket now open",
+      "passed": true
+    }
+  ]
+}

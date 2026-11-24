@@ -12,3 +12,9 @@ jobs:
       - run: python -m pytest -q
       - run: python scripts/connector.py --host example.invalid --tenant 00000000-0000-0000-0000-000000000000 --scope api://example/Tickets.Access --output /tmp/connector.json
       - run: docker build -t enterprise-agent-builder-lab .
+      - name: Container runtime acceptance
+        run: |
+          docker run -d --name lab-ci -p 127.0.0.1:8000:8000 enterprise-agent-builder-lab
+          trap 'docker logs lab-ci; docker rm -f lab-ci' EXIT
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8000/health && break; sleep 1; done
+          python scripts/evaluate.py

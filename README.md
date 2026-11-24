@@ -51,3 +51,11 @@ Follow [Microsoft setup](docs/microsoft.md), [workflow recipes](integrations/pow
 ## Operations and handover
 
 See [operations](docs/operations.md) for deployment, testing, recovery, threat model and acceptance checklist. GitHub Actions runs tests, validates connector generation and builds the image when configured on GitHub.
+
+## V3 browser demo and runtime acceptance
+
+Open http://127.0.0.1:8000/ for the browser workspace. Enter `demo-alice` in the token field. Local chat returns policy evidence; create a synthetic access ticket, switch to `demo-reviewer`, inspect the approval, approve, then switch back to Alice and read the ticket. No token is stored in browser storage. The UI requires explicit confirmation for writes; the API itself still relies on authorization rather than proof of UI confirmation.
+
+Run `python scripts/evaluate.py` against a disposable loopback demo server. It creates synthetic records. V3 adds Docker runtime acceptance to CI; build success alone does not prove runtime success. Local verification: 24 pytest tests and 12 HTTP checks passed (see `docs/v3-http-evaluation.json`). Browser rendering and live provider calls are not independently verified.
+
+For optional browser model chat, start the local server with `ENABLE_PROVIDER_CHAT=true` and the appropriate provider key/model set in the server environment. Tick the consent checkbox per request. Browser model tools can retrieve synthetic policy only; ticket content is not forwarded by the browser chat tool adapter. Do not expose demo mode to the internet. The provider chat route refuses external model calls in Entra mode. See [live integration checklist](docs/live-validation.md).

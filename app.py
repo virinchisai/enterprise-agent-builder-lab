@@ -135,3 +135,43 @@ def metrics(p:Principal=Depends(identity)):
     if not p.reviewer: raise HTTPException(403,'Reviewer role required')
     with db() as c:
         return {'tickets':c.execute('SELECT COUNT(*) FROM tickets').fetchone()[0], 'audit_events':c.execute('SELECT COUNT(*) FROM audit').fetchone()[0]}
+
+# Browser UI and optional read-only model chat. Model egress is disabled by default.
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import httpx
+import agent
+
+class ChatInput(Strict):
+    question:str=Field(min_length=2,max_length=300)
+    provider:Literal['local','openai','claude']='local'
+    allow_provider_egress:bool=False
+
+@app.get('/',include_in_schema=False)
+def browser_ui():
+    return FileResponse(Path(__file__).parent/'web'/'index.html',headers={'Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",'X-Content-Type-Options':'nosniff'})
+
+app.mount('/ui',StaticFiles(directory=Path(__file__).parent/'web'),name='ui')
+
+@app.post('/chat')
+def chat(body:ChatInput,p:Principal=Depends(identity)):
+    if body.provider=='local':
+        return {'provider':'local','evidence':knowledge(body.question,p)}
+    if os.getenv('AUTH_MODE','demo')!='demo' or os.getenv('ENABLE_PROVIDER_CHAT')!='true' or not body.allow_provider_egress:
+        raise HTTPException(403,'Provider chat requires local synthetic mode, server opt-in and user consent')
+    prefix='OPENAI' if body.provider=='openai' else 'ANTHROPIC'
+    key=os.getenv(prefix+'_API_KEY'); model=os.getenv(prefix+'_MODEL')
+    if not key or not model: raise HTTPException(503,'Provider not configured')
+    def run(name,args):
+        if not isinstance(args,dict): return {'error':'invalid arguments'}
+        try:
+            if name=='search_knowledge' and set(args)=={'q'} and isinstance(args['q'],str): return knowledge(args['q'],p)
+            # Browser provider mode deliberately excludes ticket content from egress.
+            return {'error':'Tool unavailable in browser provider mode'}
+        except HTTPException: return {'error':'Invalid tool input'}
+    try:
+        with httpx.Client(timeout=20,follow_redirects=False) as c:
+            fn=agent.openai_run if body.provider=='openai' else agent.claude_run
+            return {'provider':body.provider,'answer':fn(body.question,run,c,key,model)}
+    except (httpx.HTTPError,ValueError,KeyError,TypeError,IndexError):
+        raise HTTPException(502,'Provider unavailable or invalid response')
